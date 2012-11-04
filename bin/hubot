@@ -23,6 +23,7 @@ Switches = [
   [ "-l", "--alias ALIAS",     "Enable replacing the robot's name with alias" ],
   [ "-n", "--name NAME",       "The name of the robot in chat" ],
   [ "-r", "--scripts PATH",    "Alternative scripts path" ],
+  [ "-i", "--config PATH",     "Use configuration file for env vars"],
   [ "-s", "--enable-slash",    "Enable replacing the robot's name with '/' (deprecated)" ],
   [ "-v", "--version",         "Displays the version of hubot installed" ]
 ]
@@ -62,6 +63,9 @@ Parser.on "name", (opt, value) ->
 Parser.on "scripts", (opt, value) ->
   Options.scripts.push(value)
 
+Parser.on "config", (opt, value) ->
+  Options.config = value
+
 Parser.on "enable-slash", (opt) ->
   console.log "WARNING: -s and --enable-slash are deprecated please use -l or --alias '/'"
   Options.alias = '/'
@@ -87,6 +91,14 @@ else
   if Options.version
     console.log robot.version
     process.exit 0
+
+  if Options.config
+    configPath = Path.resolve Options.config
+    Path.exists configPath, (exists) =>
+      if exists
+        config = require configPath
+        for own attr, value of config
+          process.env[attr] = value
 
   robot.enableSlash = Options.enableSlash
   robot.alias = Options.alias
